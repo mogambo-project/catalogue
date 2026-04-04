@@ -7,7 +7,7 @@ ARG gid=1000
 
 RUN mkdir /app
 COPY . /go/src/github.com/microservices-demo/catalogue/
-COPY images/ /images/
+COPY images/ /go/images/
 
 RUN go get -u github.com/FiloSottile/gvt
 RUN cd /go/src/github.com/microservices-demo/catalogue && gvt restore
@@ -18,7 +18,7 @@ RUN groupadd -g ${gid} ${group} \
     && useradd  -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 
-RUN chown -R ${user}:${group} /app/main /images
+RUN chown -R ${user}:${group} /app/main /go/images
 
 USER ${user}
 
