@@ -7,7 +7,7 @@ ARG gid=1000
 
 RUN mkdir /app
 COPY . /go/src/github.com/microservices-demo/catalogue/
-COPY images/ /go/images/
+COPY images/ /images/
 
 RUN go get -u github.com/FiloSottile/gvt
 RUN cd /go/src/github.com/microservices-demo/catalogue && gvt restore
@@ -18,11 +18,11 @@ RUN groupadd -g ${gid} ${group} \
     && useradd  -u ${uid} -g ${gid} -m -s /bin/bash ${user}
 
 
-RUN chown -R ${user}:${group} /app/main /go/images
+RUN chown -R ${user}:${group} /app/main /images
 
 USER ${user}
 
-CMD ["/app/main", "-port=8081"]
+CMD ["/app/main", "-port=8081", "-images=/images/"]
 
 EXPOSE 8081
 
