@@ -15,21 +15,22 @@ pipeline {
 
   stages {
     stage('docker build & push') {
-      when { branch 'master' }   // build/push images only from the main line, not from PRs
+      // Build only from version branches: 1.0, 2.2, ...  (no 'master' anymore)
+      when { branch pattern: '\\d+\\.\\d+', comparator: 'REGEXP' }
       steps {
         script {
-          def gitsha = (env.GIT_COMMIT ?: 'dev').take(7)
-          def tag    = "${env.BUILD_NUMBER}-${gitsha}"
+          // version from the VERSION file (keep its major.minor == the branch name, e.g. branch 1.0 -> 1.0.x)
+          def ver = readFile('VERSION').trim()
+          def tag = "${ver}-${env.BUILD_NUMBER}"   // e.g. 1.0.0-7  (immutable, branch-scoped)
           docker.withRegistry(env.REGISTRY, env.DOCKERHUB_CRED) {
             // app image
             def app = docker.build("${env.IMAGE_APP}:${tag}", "-f docker/catalogue/Dockerfile .")
-            app.push()           // immutable tag
-            app.push('latest')   // moving tag
+            app.push()           // the only tag we push now — no moving ':latest'
             // db image (folds in the old catalogue-db-dockerbuild job)
             def db = docker.build("${env.IMAGE_DB}:${tag}", "-f docker/catalogue-db/Dockerfile .")
             db.push()
-            db.push('latest')
           }
+          echo "Pushed ${env.IMAGE_APP}:${tag} and ${env.IMAGE_DB}:${tag}"
         }
       }
     }
